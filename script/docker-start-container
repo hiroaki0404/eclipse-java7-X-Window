@@ -1,0 +1,13 @@
+#!/bin/bash
+DOCKER_HOST="dev"
+CONTAINER_NAME=$1
+shift
+DOCKER_OPT=$(docker-machine config $DOCKER_HOST)
+CONTAINER_ID=$(docker $DOCKER_OPT run -d -P -v /Users:/Users $CONTAINER_NAME)
+CONTAINER_IP=$(docker $DOCKER_OPT logs $CONTAINER_ID | awk -F : '/Container ip address/{print $2;}')
+DISPLAY_IP=$(docker-machine ssh $DOCKER_HOST -t 'who |grep $USER | head -1' | awk '{print $7;}')
+echo "Containerid: $(echo $CONTAINER_ID |cut -b 1-12)"
+echo "Container ip address: $CONTAINER_IP"
+
+docker-machine ssh $DOCKER_HOST -t "slogin -X $CONTAINER_IP env DISPLAY=${DISPLAY_IP}:0 $@"
+
